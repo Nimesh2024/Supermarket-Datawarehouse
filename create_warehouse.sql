@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS supermarket_dw
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -73,6 +72,18 @@ CREATE TABLE IF NOT EXISTS FactSupplierSupply (
     supply_price DECIMAL(12,2) NOT NULL,
     PRIMARY KEY (supplier_key, product_key),
     FOREIGN KEY (supplier_key) REFERENCES DimSupplier(supplier_key),
+    FOREIGN KEY (product_key) REFERENCES DimProduct(product_key)
+);
+
+CREATE TABLE IF NOT EXISTS FactFeedback (
+    review_id VARCHAR(100) PRIMARY KEY,
+    date_key INT NOT NULL,
+    customer_key INT NOT NULL,
+    product_key INT NOT NULL,
+    rating TINYINT NOT NULL,
+    review_text TEXT,
+    FOREIGN KEY (date_key) REFERENCES DimDate(date_key),
+    FOREIGN KEY (customer_key) REFERENCES DimCustomer(customer_key),
     FOREIGN KEY (product_key) REFERENCES DimProduct(product_key)
 );
 
