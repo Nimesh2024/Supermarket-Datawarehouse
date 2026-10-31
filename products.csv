@@ -1,0 +1,9 @@
+product_id,product_name,category,unit_cost,selling_price,stock_quantity
+1001,Rice,Grains,180.00,250.00,150
+1002,Milk,Dairy,320.00,450.00,80
+1003,Sugar,Grocery,130.00,180.00,200
+1004,Cooking Oil,Oil,950.00,1200.00,45
+1005,Bread,Bakery,250.00,350.00,60
+1006,Tea,Beverages,400.00,550.00,90
+1007,Soap,Personal Care,120.00,175.00,110
+1008,Flour,Baking,140.00,200.00,125
