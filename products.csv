@@ -7,3 +7,23 @@ product_id,product_name,category,unit_cost,selling_price,stock_quantity
 1006,Tea,Beverages,400.00,550.00,90
 1007,Soap,Personal Care,120.00,175.00,110
 1008,Flour,Baking,140.00,200.00,125
+1009,Basmati Rice 1kg,Grains,420.00,580.00,85
+1010,Red Raw Rice 1kg,Grains,160.00,220.00,140
+1011,Butter 200g,Dairy,520.00,690.00,65
+1012,Cheddar Cheese 200g,Dairy,750.00,980.00,40
+1013,Set Yoghurt 80g,Dairy,60.00,90.00,180
+1014,Brown Sugar 1kg,Grocery,170.00,240.00,110
+1015,Chili Powder 100g,Grocery,180.00,260.00,95
+1016,Table Salt 400g,Grocery,70.00,110.00,160
+1017,Coconut Oil 750ml,Oil,820.00,1050.00,60
+1018,Tomato Sauce 400g,Grocery,280.00,390.00,75
+1019,Whole Wheat Bread 450g,Bakery,150.00,210.00,45
+1020,Chocolate Cake Slice,Bakery,180.00,280.00,50
+1021,Instant Coffee 100g,Beverages,680.00,890.00,70
+1022,Green Tea 50g,Beverages,310.00,440.00,55
+1023,Fruit Juice 1L,Beverages,380.00,520.00,80
+1024,Shampoo 200ml,Personal Care,450.00,620.00,65
+1025,Toothpaste 120g,Personal Care,210.00,310.00,95
+1026,Cream Crackers 500g,Snacks,320.00,440.00,120
+1027,Dishwash Liquid 500ml,Household,260.00,360.00,85
+1028,Washing Powder 1kg,Household,480.00,640.00,75
