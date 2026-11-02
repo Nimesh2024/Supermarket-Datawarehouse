@@ -72,30 +72,82 @@ API_URL = required_env(
 )
 
 # --------------------------------------------------
-# 2. EXTRACT: MYSQL POS
+# 1.1 DATA REFRESH & WATERMARK MANAGEMENT
 # --------------------------------------------------
 
-def extract_pos():
+def get_watermark(source_name):
+    """
+    Fetch the high-watermark timestamp for incremental data refresh.
+    Returns None if running for the first time or in full-refresh mode.
+    """
+    try:
+        with dw_engine.connect() as conn:
+            row = conn.execute(
+                text("SELECT last_extracted_value FROM ETLWatermark WHERE source_name = :src"),
+                {"src": source_name}
+            ).fetchone()
+            if row and row[0]:
+                return row[0]
+    except Exception:
+        pass
+    return None
+
+
+def set_watermark(conn, source_name, value):
+    """
+    Update the high-watermark upon successful pipeline commit.
+    """
+    try:
+        conn.execute(
+            text("""
+                INSERT INTO ETLWatermark (source_name, last_extracted_value)
+                VALUES (:src, :val)
+                ON DUPLICATE KEY UPDATE last_extracted_value = :val
+            """),
+            {"src": source_name, "val": str(value)}
+        )
+    except Exception as e:
+        print(f"Warning: Could not update watermark for {source_name}: {e}")
+
+
+# --------------------------------------------------
+# 2. EXTRACT: MYSQL POS (Incremental & Full Support)
+# --------------------------------------------------
+
+def extract_pos(watermark=None):
     print("Extracting MySQL POS data...")
 
-    with source_engine.connect() as conn:
-        sales = pd.read_sql(
-            text("""
-                SELECT sale_id, sale_datetime, customer_id,
-                       branch_id, payment_method, status
-                FROM pos_sales
-            """),
-            conn,
-        )
+    query_sales = """
+        SELECT sale_id, sale_datetime, customer_id,
+               branch_id, payment_method, status
+        FROM pos_sales
+    """
+    params = {}
+    if watermark:
+        print(f"  [Incremental Mode] Extracting POS sales newer than watermark: {watermark}")
+        query_sales += " WHERE sale_datetime > :watermark ORDER BY sale_datetime ASC"
+        params["watermark"] = watermark
+    else:
+        print("  [Full Mode] Extracting all historical POS sales...")
 
-        items = pd.read_sql(
-            text("""
-                SELECT sale_item_id, sale_id, product_id,
-                       quantity, unit_price, discount_amount
-                FROM pos_sale_items
-            """),
-            conn,
-        )
+    with source_engine.connect() as conn:
+        sales = pd.read_sql(text(query_sales), conn, params=params)
+
+        if sales.empty:
+            print("  No new sales records found since last watermark.")
+            items = pd.DataFrame(columns=[
+                "sale_item_id", "sale_id", "product_id",
+                "quantity", "unit_price", "discount_amount"
+            ])
+            return sales, items
+
+        sale_ids = tuple(sales["sale_id"].tolist())
+        if len(sale_ids) == 1:
+            items_query = f"SELECT sale_item_id, sale_id, product_id, quantity, unit_price, discount_amount FROM pos_sale_items WHERE sale_id = {sale_ids[0]}"
+        else:
+            items_query = f"SELECT sale_item_id, sale_id, product_id, quantity, unit_price, discount_amount FROM pos_sale_items WHERE sale_id IN {sale_ids}"
+
+        items = pd.read_sql(text(items_query), conn)
 
     return sales, items
 
@@ -281,6 +333,9 @@ def clean_dimensions(customers, branches, products, suppliers):
 
 
 def clean_sales(sales, items, customers, branches, products):
+    if sales.empty:
+        return sales, items
+
     sales = sales.copy()
     items = items.copy()
 
@@ -525,8 +580,6 @@ def load_warehouse(
 ):
     print("Transforming and loading data...")
 
-    date_dim = build_date_dimension(sales)
-
     customer_dim = customers.rename(
         columns={"customer_id": "customer_key"}
     )[["customer_key", "customer_name", "city", "gender"]]
@@ -556,20 +609,9 @@ def load_warehouse(
     )[["supplier_key", "product_key", "supply_price"]]
 
     # One transaction for all warehouse changes.
-    # If any load fails, all changes in this transaction roll back.
+    # Target dimension tables are updated in-place (SCD-1 Upsert - never deleted).
     with dw_engine.begin() as conn:
         payment_mapping = load_payment_mapping(conn)
-        facts = build_fact_sales(sales, items, products, payment_mapping=payment_mapping)
-
-        upsert(
-            conn, "DimDate",
-            [
-                "date_key", "full_date", "day_number",
-                "month_number", "month_name",
-                "quarter_number", "year_number",
-            ],
-            records(date_dim), ["date_key"],
-        )
 
         upsert(
             conn, "DimProduct",
@@ -598,33 +640,54 @@ def load_warehouse(
             records(supplier_dim), ["supplier_key"],
         )
 
-        fact_cols = [
-            "sale_id", "sale_item_id", "date_key",
-            "product_key", "customer_key", "branch_key",
-            "quantity", "unit_selling_price",
-            "discount_amount", "sales_amount",
-            "cost_amount", "profit_amount",
-        ]
-        if "payment_method_key" in facts.columns:
-            try:
-                table_cols = [r[0] for r in conn.execute(text("DESCRIBE FactSales")).fetchall()]
-                if "payment_method_key" in table_cols:
-                    fact_cols.append("payment_method_key")
-            except Exception:
-                pass
-
-        upsert(
-            conn, "FactSales",
-            fact_cols,
-            records(facts[fact_cols]), ["sale_id", "sale_item_id"],
-        )
-
         upsert(
             conn, "FactSupplierSupply",
             ["supplier_key", "product_key", "supply_price"],
             records(supplier_facts),
             ["supplier_key", "product_key"],
         )
+
+        # FactSales load and watermark update
+        if not sales.empty:
+            date_dim = build_date_dimension(sales)
+            facts = build_fact_sales(sales, items, products, payment_mapping=payment_mapping)
+
+            upsert(
+                conn, "DimDate",
+                [
+                    "date_key", "full_date", "day_number",
+                    "month_number", "month_name",
+                    "quarter_number", "year_number",
+                ],
+                records(date_dim), ["date_key"],
+            )
+
+            fact_cols = [
+                "sale_id", "sale_item_id", "date_key",
+                "product_key", "customer_key", "branch_key",
+                "quantity", "unit_selling_price",
+                "discount_amount", "sales_amount",
+                "cost_amount", "profit_amount",
+            ]
+            if "payment_method_key" in facts.columns:
+                try:
+                    table_cols = [r[0] for r in conn.execute(text("DESCRIBE FactSales")).fetchall()]
+                    if "payment_method_key" in table_cols:
+                        fact_cols.append("payment_method_key")
+                except Exception:
+                    pass
+
+            upsert(
+                conn, "FactSales",
+                fact_cols,
+                records(facts[fact_cols]), ["sale_id", "sale_item_id"],
+            )
+
+            max_dt = sales["sale_datetime"].max().strftime("%Y-%m-%d %H:%M:%S")
+            set_watermark(conn, "pos_sales", max_dt)
+            print(f"  Loaded {len(facts)} FactSales items. Watermark updated to: {max_dt}")
+        else:
+            print("  No new sales records; dimension updates committed.")
 
     print("Warehouse transaction committed successfully.")
 
@@ -669,12 +732,19 @@ def log_finish(run_id, status, message):
 
 # ----------------------------------------------- Mongodb data ----------------------------------------------------
 
-def extract_mongodb_reviews():
+def extract_mongodb_reviews(watermark=None):
     print("Extracting MongoDB customer reviews...")
 
     uri = required_env("MONGODB_URI")
     database_name = required_env("MONGODB_DATABASE")
     collection_name = required_env("MONGODB_COLLECTION")
+
+    mongo_filter = {}
+    if watermark:
+        print(f"  [Incremental Mode] Extracting reviews newer than: {watermark}")
+        mongo_filter["review_date"] = {"$gt": str(watermark)}
+    else:
+        print("  [Full Mode] Extracting all customer reviews...")
 
     with MongoClient(
         uri,
@@ -689,13 +759,20 @@ def extract_mongodb_reviews():
         )
 
         documents = list(
-            collection.find({}, {"_id": 0})
+            collection.find(mongo_filter, {"_id": 0})
         )
 
     if not documents:
-        raise ValueError(
-            "MongoDB reviews collection is empty."
-        )
+        if watermark:
+            print("  No new customer reviews found since last watermark.")
+            return pd.DataFrame(columns=[
+                "review_id", "customer_id", "product_id",
+                "rating", "review_text", "review_date"
+            ])
+        else:
+            raise ValueError(
+                "MongoDB reviews collection is empty."
+            )
 
     reviews = pd.DataFrame(documents)
 
@@ -760,6 +837,12 @@ def extract_mongodb_reviews():
 
 
 def build_feedback_facts(reviews, customers, products):
+    if reviews.empty:
+        return pd.DataFrame(columns=[
+            "review_id", "date_key", "customer_key",
+            "product_key", "rating", "review_text"
+        ])
+
     # Check that every review refers to existing entities.
     customer_ids = set(customers["customer_id"])
     product_ids = set(products["product_id"])
@@ -798,27 +881,24 @@ def build_feedback_facts(reviews, customers, products):
 
 
 def load_feedback(reviews, customers, products):
+    if reviews.empty:
+        print("  No new customer reviews to load.")
+        return
+
     feedback_facts = build_feedback_facts(
         reviews, customers, products
     )
 
     with dw_engine.begin() as conn:
-        # Ensure review dates exist in DimDate.
-        dates = pd.to_datetime(
-            reviews["review_date"]
-        )
+        dates = pd.to_datetime(reviews["review_date"])
 
         date_dim = pd.DataFrame({
-            "date_key": dates.dt.strftime(
-                "%Y%m%d"
-            ).astype("int64"),
+            "date_key": dates.dt.strftime("%Y%m%d").astype("int64"),
             "full_date": dates.dt.date,
             "day_number": dates.dt.day,
             "month_number": dates.dt.month,
             "month_name": dates.dt.strftime("%B"),
-            "quarter_number": (
-                (dates.dt.month - 1) // 3 + 1
-            ),
+            "quarter_number": ((dates.dt.month - 1) // 3 + 1),
             "year_number": dates.dt.year,
         }).drop_duplicates(subset=["date_key"])
 
@@ -845,14 +925,27 @@ def load_feedback(reviews, customers, products):
             ["review_id"],
         )
 
+        max_rev_date = str(reviews["review_date"].max())
+        set_watermark(conn, "mongodb_reviews", max_rev_date)
+
     print(
-        f"Loaded {len(feedback_facts)} customer reviews."
+        f"Loaded {len(feedback_facts)} customer reviews. Watermark updated to: {max_rev_date}"
     )
 
 
 
 def main():
     run_id = None
+    full_refresh = os.getenv("ETL_FULL_REFRESH", "False").strip().lower() in ("true", "1", "yes") or "--full-refresh" in sys.argv
+
+    # Check high-watermarks for incremental refresh
+    pos_watermark = None if full_refresh else get_watermark("pos_sales")
+    mongo_watermark = None if full_refresh else get_watermark("mongodb_reviews")
+
+    mode_label = "FULL REFRESH (Initial Load / Backfill)" if full_refresh else f"INCREMENTAL REFRESH (Daily Batch via Watermark: POS > {pos_watermark})"
+    print("=" * 60)
+    print(f"Starting Supermarket ETL Pipeline in [{mode_label}]")
+    print("=" * 60)
 
     try:
         # Check that the warehouse schema exists.
@@ -862,12 +955,12 @@ def main():
 
         run_id = log_start()
 
-        # Extract from all four sources.
-        sales, items = extract_pos()
+        # Extract from all sources (with incremental watermarks)
+        sales, items = extract_pos(watermark=pos_watermark)
         customers, branches = extract_sqlite()
         products = extract_products()
         suppliers = extract_suppliers()
-        reviews = extract_mongodb_reviews()
+        reviews = extract_mongodb_reviews(watermark=mongo_watermark)
 
         # Clean and validate dimension data.
         customers, branches, products, suppliers = clean_dimensions(
