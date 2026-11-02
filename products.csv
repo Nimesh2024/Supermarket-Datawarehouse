@@ -1,29 +1,101 @@
 product_id,product_name,category,unit_cost,selling_price,stock_quantity
-1001,Rice,Grains,180.00,250.00,150
-1002,Milk,Dairy,320.00,450.00,80
-1003,Sugar,Grocery,130.00,180.00,200
-1004,Cooking Oil,Oil,950.00,1200.00,45
-1005,Bread,Bakery,250.00,350.00,60
-1006,Tea,Beverages,400.00,550.00,90
-1007,Soap,Personal Care,120.00,175.00,110
-1008,Flour,Baking,140.00,200.00,125
-1009,Basmati Rice 1kg,Grains,420.00,580.00,85
-1010,Red Raw Rice 1kg,Grains,160.00,220.00,140
-1011,Butter 200g,Dairy,520.00,690.00,65
-1012,Cheddar Cheese 200g,Dairy,750.00,980.00,40
-1013,Set Yoghurt 80g,Dairy,60.00,90.00,180
-1014,Brown Sugar 1kg,Grocery,170.00,240.00,110
-1015,Chili Powder 100g,Grocery,180.00,260.00,95
-1016,Table Salt 400g,Grocery,70.00,110.00,160
-1017,Coconut Oil 750ml,Oil,820.00,1050.00,60
-1018,Tomato Sauce 400g,Grocery,280.00,390.00,75
-1019,Whole Wheat Bread 450g,Bakery,150.00,210.00,45
-1020,Chocolate Cake Slice,Bakery,180.00,280.00,50
-1021,Instant Coffee 100g,Beverages,680.00,890.00,70
-1022,Green Tea 50g,Beverages,310.00,440.00,55
-1023,Fruit Juice 1L,Beverages,380.00,520.00,80
-1024,Shampoo 200ml,Personal Care,450.00,620.00,65
-1025,Toothpaste 120g,Personal Care,210.00,310.00,95
-1026,Cream Crackers 500g,Snacks,320.00,440.00,120
-1027,Dishwash Liquid 500ml,Household,260.00,360.00,85
-1028,Washing Powder 1kg,Household,480.00,640.00,75
+1001,Rice - Samba 5kg,Grains,180.0,250.0,193
+1002,Rice - Basmati 1kg,Grains,420.0,580.0,58
+1003,Rice - Red Raw 1kg,Grains,160.0,220.0,36
+1004,Rice - Keeri Samba 5kg,Grains,310.0,420.0,219
+1005,Rice - White Raw 1kg,Grains,150.0,210.0,100
+1006,Oats 500g,Grains,380.0,520.0,92
+1007,Barley 500g,Grains,240.0,340.0,87
+1008,Corn Flour 400g,Grains,190.0,270.0,65
+1009,Fresh Milk 1L,Dairy,320.0,450.0,218
+1010,Butter - Salted 200g,Dairy,520.0,690.0,56
+1011,Cheddar Cheese 200g,Dairy,750.0,980.0,203
+1012,Set Yoghurt 80g,Dairy,60.0,90.0,219
+1013,Curd Clay Pot 1L,Dairy,380.0,520.0,169
+1014,Paneer 250g,Dairy,480.0,650.0,52
+1015,Condensed Milk 390g,Dairy,420.0,580.0,181
+1016,Milk Powder 400g,Dairy,850.0,1150.0,138
+1017,Low Fat Milk 1L,Dairy,340.0,470.0,38
+1018,White Sugar 1kg,Grocery,130.0,180.0,37
+1019,Brown Sugar 1kg,Grocery,170.0,240.0,53
+1020,Chili Powder 100g,Grocery,180.0,260.0,85
+1021,Table Salt 400g,Grocery,70.0,110.0,89
+1022,Curry Powder 100g,Grocery,160.0,230.0,159
+1023,Turmeric Powder 100g,Grocery,220.0,310.0,184
+1024,Black Pepper Powder 100g,Grocery,280.0,390.0,36
+1025,Tomato Sauce 400g,Grocery,280.0,390.0,173
+1026,Chili Sauce 400g,Grocery,290.0,410.0,80
+1027,Soy Sauce 350ml,Grocery,310.0,430.0,213
+1028,Mustard Seeds 100g,Grocery,90.0,140.0,196
+1029,Coriander Powder 100g,Grocery,140.0,210.0,209
+1030,Cooking Oil 1L,Oil,950.0,1200.0,169
+1031,Coconut Oil 750ml,Oil,820.0,1050.0,137
+1032,Olive Oil 500ml,Oil,1450.0,1950.0,86
+1033,Sunflower Oil 1L,Oil,920.0,1180.0,144
+1034,Sesame Oil 350ml,Oil,680.0,920.0,180
+1035,White Bread 450g,Bakery,120.0,170.0,101
+1036,Whole Wheat Bread 450g,Bakery,150.0,210.0,237
+1037,Chocolate Cake Slice,Bakery,180.0,280.0,31
+1038,Burger Buns 4pk,Bakery,140.0,220.0,224
+1039,Hot Dog Buns 4pk,Bakery,140.0,220.0,236
+1040,Garlic Bread 200g,Bakery,220.0,320.0,70
+1041,Croissant Butter 2pk,Bakery,260.0,380.0,208
+1042,Fruit Cake 350g,Bakery,380.0,540.0,138
+1043,Wheat Flour 1kg,Baking,140.0,200.0,117
+1044,Baking Powder 100g,Baking,110.0,160.0,101
+1045,Yeast Instant 50g,Baking,95.0,145.0,69
+1046,Vanilla Essence 50ml,Baking,160.0,230.0,85
+1047,Cocoa Powder 100g,Baking,310.0,440.0,225
+1048,Icing Sugar 500g,Baking,220.0,320.0,116
+1049,Ceylon Black Tea 400g,Beverages,400.0,550.0,56
+1050,Instant Coffee 100g,Beverages,680.0,890.0,53
+1051,Green Tea 50g,Beverages,310.0,440.0,127
+1052,Fruit Juice 1L,Beverages,380.0,520.0,54
+1053,Mineral Water 1.5L,Beverages,90.0,140.0,121
+1054,Soda Sparkling 1.5L,Beverages,180.0,260.0,246
+1055,Malt Energy Drink 400g,Beverages,590.0,780.0,118
+1056,Ginger Beer 1.5L,Beverages,210.0,300.0,184
+1057,Apple Cider 750ml,Beverages,620.0,850.0,97
+1058,Beauty Soap 100g,Personal Care,120.0,175.0,236
+1059,Shampoo 200ml,Personal Care,450.0,620.0,41
+1060,Toothpaste 120g,Personal Care,210.0,310.0,216
+1061,Conditioner 180ml,Personal Care,480.0,660.0,147
+1062,Body Wash 250ml,Personal Care,520.0,720.0,167
+1063,Toothbrush Soft 2pk,Personal Care,160.0,240.0,61
+1064,Face Wash 100ml,Personal Care,360.0,510.0,126
+1065,Hand Sanitizer 100ml,Personal Care,140.0,210.0,50
+1066,Deodorant Spray 150ml,Personal Care,580.0,790.0,171
+1067,Dishwash Liquid 500ml,Household,260.0,360.0,105
+1068,Washing Powder 1kg,Household,480.0,640.0,242
+1069,Floor Cleaner 1L,Household,390.0,540.0,190
+1070,Glass Cleaner 500ml,Household,310.0,430.0,188
+1071,Toilet Cleaner 750ml,Household,340.0,470.0,250
+1072,Laundry Bleach 500ml,Household,190.0,280.0,122
+1073,Kitchen Sponges 3pk,Household,120.0,180.0,177
+1074,Garbage Bags Medium 20pk,Household,220.0,320.0,79
+1075,Cream Crackers 500g,Snacks,320.0,440.0,210
+1076,Marie Biscuits 400g,Snacks,220.0,310.0,47
+1077,Chocolate Cream Biscuits 200g,Snacks,190.0,270.0,41
+1078,Potato Chips 100g,Snacks,180.0,260.0,199
+1079,Mixed Salted Nuts 150g,Snacks,420.0,590.0,88
+1080,Milk Chocolate Bar 80g,Snacks,250.0,360.0,227
+1081,Cassava Chips Chili 100g,Snacks,150.0,220.0,104
+1082,Marshmallows 150g,Snacks,240.0,340.0,50
+1083,Chicken Curry Cut 1kg,Meat & Seafood,920.0,1250.0,248
+1084,Chicken Breast 500g,Meat & Seafood,680.0,920.0,89
+1085,Chicken Sausages 400g,Meat & Seafood,540.0,740.0,55
+1086,Canned Tuna Chunks 185g,Meat & Seafood,420.0,580.0,127
+1087,Canned Sardines 425g,Meat & Seafood,360.0,490.0,101
+1088,Prawns Peeled 500g,Meat & Seafood,1150.0,1550.0,146
+1089,Fish Fillet White 500g,Meat & Seafood,850.0,1180.0,192
+1090,Potatoes 1kg,Produce,240.0,330.0,243
+1091,Red Onions 1kg,Produce,320.0,440.0,123
+1092,Big Onions 1kg,Produce,260.0,360.0,71
+1093,Carrots 500g,Produce,180.0,260.0,124
+1094,Tomatoes 500g,Produce,190.0,270.0,120
+1095,Garlic 500g,Produce,380.0,520.0,83
+1096,Green Beans 500g,Produce,210.0,300.0,201
+1097,Apples Red 4pk,Produce,550.0,750.0,98
+1098,Oranges Sweet 4pk,Produce,480.0,660.0,209
+1099,Specialty Item 99,Grocery,200.0,280.0,100
+1100,Specialty Item 100,Grocery,200.0,280.0,100
