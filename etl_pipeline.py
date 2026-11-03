@@ -385,16 +385,17 @@ def clean_sales(sales, items, customers, branches, products):
     ).any():
         raise ValueError("Discount exceeds the line amount.")
 
-    # Only completed sales are included in FactSales.
+    # Validate that all items refer to a valid sale in the source.
+    if not set(items["sale_id"]).issubset(set(sales["sale_id"])):
+        raise ValueError(
+            "Sale items refer to missing sales in POS source."
+        )
+
+    # Only completed sales and their line items are included in FactSales.
     sales = sales[
         sales["status"].astype(str).str.upper().eq("COMPLETED")
     ].copy()
-
-    # Validate source relationships before loading facts.
-    if not set(items["sale_id"]).issubset(set(sales["sale_id"])):
-        raise ValueError(
-            "Sale items refer to missing or non-completed sales."
-        )
+    items = items[items["sale_id"].isin(sales["sale_id"])].copy()
 
     if not set(sales["customer_id"]).issubset(
         set(customers["customer_id"])
