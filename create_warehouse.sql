@@ -94,3 +94,9 @@ CREATE TABLE IF NOT EXISTS ETLRunLog (
     run_status VARCHAR(20) NOT NULL,
     message TEXT
 );
+
+CREATE TABLE IF NOT EXISTS ETLWatermark (
+    source_name VARCHAR(50) PRIMARY KEY,
+    last_extracted_value VARCHAR(100) NOT NULL
+);
+
